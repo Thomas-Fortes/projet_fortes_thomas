@@ -1,0 +1,96 @@
+<div class="detail-container">
+  <div class="back-button">
+    <button (click)="goBack()" class="btn-back">
+      Retour a la liste
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="loading">
+    Chargement...
+  </div>
+
+  <div *ngIf="error" class="error-message">
+    {{ error }}
+  </div>
+
+  <div *ngIf="pollution && !loading" class="detail-card">
+    <div class="detail-header">
+      <h1>{{ pollution.titre }}</h1>
+      <div class="header-actions">
+        <button (click)="toggleFavorite()" class="btn-favorite" [class.active]="isFavorite(pollution.id!)">
+          {{ isFavorite(pollution.id!) ? 'Retirer des favoris' : 'Ajouter aux favoris' }}
+        </button>
+        <ng-container *ngIf="canEdit()">
+          <button (click)="editPollution()" class="btn-edit">Modifier</button>
+          <button (click)="deletePollution()" class="btn-delete">Supprimer</button>
+        </ng-container>
+      </div>
+    </div>
+
+    <div class="detail-content">
+      <div class="detail-main">
+        <div *ngIf="pollution.photo" class="photo-container">
+          <img [src]="apiUrl + '/uploads/' + pollution.photo" [alt]="pollution.titre" class="pollution-photo" />
+        </div>
+
+        <div class="info-section">
+          <h3>Description</h3>
+          <p>{{ pollution.description }}</p>
+        </div>
+
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="label">Type</span>
+            <span class="value type-badge">{{ getTypeLabel(pollution.type) }}</span>
+          </div>
+
+          <div class="info-item">
+            <span class="label">Statut</span>
+            <span class="value statut-badge" [ngClass]="getStatutClass(pollution.statut || 'signalee')">
+              {{ getStatutLabel(pollution.statut || 'signalee') }}
+            </span>
+          </div>
+
+          <div class="info-item">
+            <span class="label">Localisation</span>
+            <span class="value">{{ pollution.localisation }}</span>
+          </div>
+
+          <div class="info-item" *ngIf="pollution.latitude && pollution.longitude">
+            <span class="label">Coordonnees GPS</span>
+            <span class="value">{{ pollution.latitude }}, {{ pollution.longitude }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="detail-sidebar">
+        <div class="info-card">
+          <h4>Decouvreur</h4>
+          <div *ngIf="pollution.user" class="user-info">
+            <p class="user-name">{{ pollution.user.prenom }} {{ pollution.user.nom }}</p>
+            <p class="user-email">{{ pollution.user.email }}</p>
+          </div>
+        </div>
+
+        <div class="info-card">
+          <h4>Dates</h4>
+          <div class="dates-info">
+            <p><span>Signalee le:</span> {{ pollution.createdAt | date:'dd/MM/yyyy HH:mm' }}</p>
+            <p><span>Mise a jour:</span> {{ pollution.updatedAt | date:'dd/MM/yyyy HH:mm' }}</p>
+          </div>
+        </div>
+
+        <div class="info-card" *ngIf="pollution.latitude && pollution.longitude">
+          <h4>Localisation sur carte</h4>
+          <a
+            [href]="'https://www.google.com/maps?q=' + pollution.latitude + ',' + pollution.longitude"
+            target="_blank"
+            class="map-link"
+          >
+            Voir sur Google Maps
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

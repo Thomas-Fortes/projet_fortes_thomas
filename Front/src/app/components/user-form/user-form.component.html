@@ -1,0 +1,86 @@
+<div class="form-container">
+  <h2>Créer un compte utilisateur</h2>
+
+  <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+    <div class="form-group">
+      <label for="prenom">Prénom *</label>
+      <input
+        type="text"
+        id="prenom"
+        formControlName="prenom"
+        placeholder="Ex: Jean"
+        [class.error]="hasError('prenom', 'required') || hasError('prenom', 'minlength')"
+      >
+      <span class="error-message" *ngIf="hasError('prenom', 'required')">
+        Le prénom est requis
+      </span>
+      <span class="error-message" *ngIf="hasError('prenom', 'minlength')">
+        Le prénom doit contenir au moins 2 caractères
+      </span>
+    </div>
+
+    <div class="form-group">
+      <label for="nom">Nom *</label>
+      <input
+        type="text"
+        id="nom"
+        formControlName="nom"
+        placeholder="Ex: Dupont"
+        [class.error]="hasError('nom', 'required') || hasError('nom', 'minlength')"
+      >
+      <span class="error-message" *ngIf="hasError('nom', 'required')">
+        Le nom est requis
+      </span>
+      <span class="error-message" *ngIf="hasError('nom', 'minlength')">
+        Le nom doit contenir au moins 2 caractères
+      </span>
+    </div>
+
+    <div class="form-group">
+      <label for="email">Email *</label>
+      <input
+        type="email"
+        id="email"
+        formControlName="email"
+        placeholder="Ex: jean.dupont@example.com"
+        [class.error]="hasError('email', 'required') || hasError('email', 'email')"
+      >
+      <span class="error-message" *ngIf="hasError('email', 'required')">
+        L'email est requis
+      </span>
+      <span class="error-message" *ngIf="hasError('email', 'email')">
+        L'email doit être valide
+      </span>
+    </div>
+
+    <div class="form-group">
+      <label for="password">Mot de passe *</label>
+      <input
+        type="password"
+        id="password"
+        formControlName="password"
+        placeholder="Minimum 6 caractères"
+        [class.error]="hasError('password', 'required') || hasError('password', 'minlength')"
+      >
+      <span class="error-message" *ngIf="hasError('password', 'required')">
+        Le mot de passe est requis
+      </span>
+      <span class="error-message" *ngIf="hasError('password', 'minlength')">
+        Le mot de passe doit contenir au moins 6 caractères
+      </span>
+    </div>
+
+    <div class="error-message" *ngIf="submitError">
+      {{ submitError }}
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn btn-secondary" (click)="cancel()" [disabled]="loading">
+        Annuler
+      </button>
+      <button type="submit" class="btn btn-primary" [disabled]="loading">
+        {{ loading ? 'En cours...' : 'Créer le compte' }}
+      </button>
+    </div>
+  </form>
+</div>

@@ -1,0 +1,63 @@
+version: '3.8'
+
+services:
+  # Base de données PostgreSQL
+  db:
+    image: postgres:15-alpine
+    container_name: pollution_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: pollution_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # API Backend
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: pollution_api
+    environment:
+      PORT: 3000
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: pollution_db
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_DIALECT: postgres
+      JWT_SECRET: votre_secret_jwt_super_securise
+      JWT_EXPIRES_IN: 24h
+      JWT_REFRESH_SECRET: votre_refresh_secret_jwt
+      JWT_REFRESH_EXPIRES_IN: 7d
+      UPLOAD_DIR: uploads
+      FRONTEND_URL: http://localhost:4200
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - api_uploads:/app/uploads
+
+  # Frontend Angular
+  front:
+    build:
+      context: ./Front
+      dockerfile: Dockerfile
+    container_name: pollution_front
+    ports:
+      - "4200:3000"
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
+  api_uploads:

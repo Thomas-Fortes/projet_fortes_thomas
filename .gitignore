@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+.angular/
+
+# Environment files (keep .env.example)
+.env
+.env.local
+.env.production
+
+# Database files
+*.sqlite
+*.sqlite3
+database.sqlite
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Uploads (keep folder structure)
+api/uploads/*
+!api/uploads/.gitkeep
+
+# Testing
+coverage/
+
+# Misc
+.claude/

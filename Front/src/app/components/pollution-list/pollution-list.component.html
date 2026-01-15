@@ -1,0 +1,100 @@
+<div class="pollution-list-container">
+  <div class="page-header">
+    <h2>{{ showFavoritesOnly ? 'Mes Favoris' : 'Liste des Pollutions' }}</h2>
+    <a *ngIf="!showFavoritesOnly && (isAuthenticated$ | async)" routerLink="/pollutions/new" class="btn-add">
+      + Signaler une pollution
+    </a>
+  </div>
+
+  <!-- Filtres de recherche -->
+  <div class="filters-container" *ngIf="!showFavoritesOnly">
+    <div class="search-box">
+      <input
+        type="text"
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="onSearchChange()"
+        placeholder="Rechercher par titre, description ou localisation..."
+        class="search-input"
+      />
+    </div>
+
+    <div class="filter-selects">
+      <select [(ngModel)]="selectedType" (ngModelChange)="onSearchChange()" class="filter-select">
+        <option value="">Tous les types</option>
+        <option *ngFor="let type of types" [value]="type">{{ getTypeLabel(type) }}</option>
+      </select>
+
+      <select [(ngModel)]="selectedStatut" (ngModelChange)="onSearchChange()" class="filter-select">
+        <option value="">Tous les statuts</option>
+        <option *ngFor="let statut of statuts" [value]="statut">{{ getStatutLabel(statut) }}</option>
+      </select>
+
+      <button *ngIf="searchTerm || selectedType || selectedStatut" (click)="clearFilters()" class="btn-clear">
+        Effacer les filtres
+      </button>
+    </div>
+
+    <div class="results-count">
+      {{ filteredPollutions.length }} pollution(s) trouvee(s)
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading">
+    Chargement en cours...
+  </div>
+
+  <div *ngIf="error" class="error">
+    {{ error }}
+  </div>
+
+  <div *ngIf="!loading && filteredPollutions.length === 0" class="no-data">
+    {{ showFavoritesOnly ? 'Aucun favori pour le moment.' : 'Aucune pollution trouvee.' }}
+  </div>
+
+  <div class="pollutions-grid" *ngIf="!loading && filteredPollutions.length > 0">
+    <div class="pollution-card" *ngFor="let pollution of filteredPollutions" (click)="viewDetails(pollution.id)">
+      <div class="card-image" *ngIf="pollution.photo">
+        <img [src]="apiUrl + '/uploads/' + pollution.photo" [alt]="pollution.titre" />
+      </div>
+      <div class="card-image placeholder" *ngIf="!pollution.photo">
+        <span>Pas de photo</span>
+      </div>
+
+      <div class="card-content">
+        <div class="card-header">
+          <h3>{{ pollution.titre }}</h3>
+          <span class="status-badge" [ngClass]="getStatusClass(pollution.statut)">
+            {{ getStatutLabel(pollution.statut) }}
+          </span>
+        </div>
+
+        <div class="card-body">
+          <p class="type-badge">{{ getTypeLabel(pollution.type) }}</p>
+          <p class="localisation">{{ pollution.localisation }}</p>
+          <p class="description">{{ pollution.description | slice:0:100 }}{{ pollution.description.length > 100 ? '...' : '' }}</p>
+
+          <div *ngIf="pollution.user" class="user-info">
+            <small>Par {{ pollution.user.prenom }} {{ pollution.user.nom }}</small>
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <button
+            class="btn btn-favorite"
+            [class.is-favorite]="isFavorite(pollution.id)"
+            (click)="toggleFavorite(pollution, $event)">
+            {{ isFavorite(pollution.id) ? 'Retirer' : 'Favoris' }}
+          </button>
+          <ng-container *ngIf="canEdit(pollution)">
+            <button class="btn btn-edit" (click)="editPollution(pollution.id, $event)">
+              Modifier
+            </button>
+            <button class="btn btn-delete" (click)="deletePollution(pollution.id, $event)">
+              Supprimer
+            </button>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

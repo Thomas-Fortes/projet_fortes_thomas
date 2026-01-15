@@ -1,0 +1,33 @@
+<div class="app-container">
+  <header class="app-header">
+    <div class="header-left">
+      <h1 routerLink="/pollutions">{{ title }}</h1>
+    </div>
+    <nav class="main-nav">
+      <a routerLink="/pollutions" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Pollutions</a>
+      <a *ngIf="isAuthenticated$ | async" routerLink="/pollutions/new" routerLinkActive="active">Signaler</a>
+      <a routerLink="/favorites" routerLinkActive="active" class="favorites-link">
+        Favoris
+        <span class="badge" *ngIf="(favoritesCount$ | async) as count">{{ count }}</span>
+      </a>
+    </nav>
+    <div class="auth-nav">
+      <ng-container *ngIf="isAuthenticated$ | async; else notLoggedIn">
+        <span class="user-name" *ngIf="user$ | async as user">{{ user.prenom }} {{ user.nom }}</span>
+        <button class="btn-logout" (click)="logout()">Deconnexion</button>
+      </ng-container>
+      <ng-template #notLoggedIn>
+        <a routerLink="/login" routerLinkActive="active" class="btn-login">Connexion</a>
+        <a routerLink="/signup" routerLinkActive="active" class="btn-signup">Inscription</a>
+      </ng-template>
+    </div>
+  </header>
+
+  <main class="app-content">
+    <router-outlet></router-outlet>
+  </main>
+
+  <footer class="app-footer">
+    <p>Projet Final - Gestion des Pollutions - 2024</p>
+  </footer>
+</div>
