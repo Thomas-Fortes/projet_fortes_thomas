@@ -4,7 +4,7 @@ import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { RouterModule, Routes } from '@angular/router';
 import { NgxsModule } from '@ngxs/store';
-import { NgxsStoragePluginModule } from '@ngxs/storage-plugin';
+import { NgxsStoragePluginModule, StorageOption } from '@ngxs/storage-plugin';
 
 import { AppComponent } from './app.component';
 import { PollutionListComponent } from './components/pollution-list/pollution-list.component';
@@ -60,7 +60,8 @@ const routes: Routes = [
     RouterModule.forRoot(routes),
     NgxsModule.forRoot([FavoritesState, AuthState]),
     NgxsStoragePluginModule.forRoot({
-      key: ['favorites', 'auth']
+      keys: ['favorites', 'auth'],
+      storage: StorageOption.SessionStorage
     })
   ],
   providers: [

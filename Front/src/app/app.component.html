@@ -1,33 +1,116 @@
-<div class="app-container">
-  <header class="app-header">
-    <div class="header-left">
-      <h1 routerLink="/pollutions">{{ title }}</h1>
-    </div>
-    <nav class="main-nav">
-      <a routerLink="/pollutions" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">Pollutions</a>
-      <a *ngIf="isAuthenticated$ | async" routerLink="/pollutions/new" routerLinkActive="active">Signaler</a>
-      <a routerLink="/favorites" routerLinkActive="active" class="favorites-link">
-        Favoris
-        <span class="badge" *ngIf="(favoritesCount$ | async) as count">{{ count }}</span>
+<div class="app-layout">
+  <!-- Header -->
+  <header class="header">
+    <div class="header-container">
+      <!-- Logo & Brand -->
+      <a routerLink="/pollutions" class="brand">
+        <div class="brand-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+          </svg>
+        </div>
+        <span class="brand-text">EcoSignal</span>
       </a>
-    </nav>
-    <div class="auth-nav">
-      <ng-container *ngIf="isAuthenticated$ | async; else notLoggedIn">
-        <span class="user-name" *ngIf="user$ | async as user">{{ user.prenom }} {{ user.nom }}</span>
-        <button class="btn-logout" (click)="logout()">Deconnexion</button>
+
+      <!-- Navigation principale -->
+      <nav class="main-nav">
+        <a routerLink="/pollutions" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="nav-icon">
+            <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/>
+          </svg>
+          Pollutions
+        </a>
+        <a *ngIf="isAuthenticated$ | async" routerLink="/pollutions/new" routerLinkActive="active" class="nav-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="nav-icon">
+            <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+          </svg>
+          Signaler
+        </a>
+        <a routerLink="/favorites" routerLinkActive="active" class="nav-link favorites-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="nav-icon">
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          </svg>
+          Favoris
+          <span class="nav-badge" *ngIf="(favoritesCount$ | async) as count">{{ count }}</span>
+        </a>
+      </nav>
+
+      <!-- Auth Section -->
+      <div class="auth-section">
+        <ng-container *ngIf="isAuthenticated$ | async; else notLoggedIn">
+          <div class="user-menu">
+            <div class="user-avatar" *ngIf="user$ | async as user">
+              {{ user.prenom?.charAt(0) }}{{ user.nom?.charAt(0) }}
+            </div>
+            <div class="user-info" *ngIf="user$ | async as user">
+              <span class="user-name">{{ user.prenom }} {{ user.nom }}</span>
+              <span class="user-email">{{ user.email }}</span>
+            </div>
+            <button class="btn-logout" (click)="logout()" title="Deconnexion">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/>
+              </svg>
+            </button>
+          </div>
+        </ng-container>
+        <ng-template #notLoggedIn>
+          <a routerLink="/login" class="btn btn-outline-light">Connexion</a>
+          <a routerLink="/signup" class="btn btn-light">Inscription</a>
+        </ng-template>
+      </div>
+
+      <!-- Mobile Menu Toggle -->
+      <button class="mobile-menu-toggle" (click)="toggleMobileMenu()">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Mobile Navigation -->
+    <div class="mobile-nav" [class.open]="mobileMenuOpen">
+      <a routerLink="/pollutions" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" (click)="closeMobileMenu()">
+        Pollutions
+      </a>
+      <a *ngIf="isAuthenticated$ | async" routerLink="/pollutions/new" routerLinkActive="active" (click)="closeMobileMenu()">
+        Signaler une pollution
+      </a>
+      <a routerLink="/favorites" routerLinkActive="active" (click)="closeMobileMenu()">
+        Mes favoris
+        <span class="mobile-badge" *ngIf="(favoritesCount$ | async) as count">({{ count }})</span>
+      </a>
+      <hr>
+      <ng-container *ngIf="isAuthenticated$ | async; else mobileNotLogged">
+        <div class="mobile-user" *ngIf="user$ | async as user">
+          Connecte en tant que {{ user.prenom }} {{ user.nom }}
+        </div>
+        <button class="mobile-logout" (click)="logout(); closeMobileMenu()">Deconnexion</button>
       </ng-container>
-      <ng-template #notLoggedIn>
-        <a routerLink="/login" routerLinkActive="active" class="btn-login">Connexion</a>
-        <a routerLink="/signup" routerLinkActive="active" class="btn-signup">Inscription</a>
+      <ng-template #mobileNotLogged>
+        <a routerLink="/login" (click)="closeMobileMenu()">Connexion</a>
+        <a routerLink="/signup" (click)="closeMobileMenu()">Inscription</a>
       </ng-template>
     </div>
   </header>
 
-  <main class="app-content">
+  <!-- Main Content -->
+  <main class="main-content">
     <router-outlet></router-outlet>
   </main>
 
-  <footer class="app-footer">
-    <p>Projet Final - Gestion des Pollutions - 2024</p>
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <div class="brand-icon small">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+          </svg>
+        </div>
+        <span>EcoSignal</span>
+      </div>
+      <p class="footer-text">Projet Final CNAM - Gestion des Pollutions Environnementales</p>
+      <p class="footer-copyright">2024 Thomas Fortes. Tous droits reserves.</p>
+    </div>
   </footer>
 </div>

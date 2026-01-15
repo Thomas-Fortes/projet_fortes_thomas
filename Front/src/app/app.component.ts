@@ -12,7 +12,8 @@ import { Router } from '@angular/router';
   styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  title = 'Gestion des Pollutions';
+  title = 'EcoSignal';
+  mobileMenuOpen = false;
 
   @Select(FavoritesState.getFavoritesCount) favoritesCount$!: Observable<number>;
   @Select(AuthState.isAuthenticated) isAuthenticated$!: Observable<boolean>;
@@ -26,5 +27,13 @@ export class AppComponent {
   logout(): void {
     this.store.dispatch(new Logout());
     this.router.navigate(['/login']);
+  }
+
+  toggleMobileMenu(): void {
+    this.mobileMenuOpen = !this.mobileMenuOpen;
+  }
+
+  closeMobileMenu(): void {
+    this.mobileMenuOpen = false;
   }
 }
