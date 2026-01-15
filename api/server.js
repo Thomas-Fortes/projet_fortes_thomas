@@ -69,6 +69,48 @@ app.use((err, req, res, next) => {
   });
 });
 
+// Route de seed (temporaire - à supprimer après utilisation)
+app.get('/api/seed', async (req, res) => {
+  try {
+    const User = require('./models/User');
+    const Pollution = require('./models/Pollution');
+
+    // Vérifier si des données existent déjà
+    const existingUsers = await User.count();
+    if (existingUsers > 0) {
+      return res.json({ message: 'Base de données déjà initialisée', users: existingUsers });
+    }
+
+    // Données de test
+    const users = [
+      { nom: 'Dupont', prenom: 'Jean', email: 'jean.dupont@email.com', password: 'password123' },
+      { nom: 'Martin', prenom: 'Sophie', email: 'sophie.martin@email.com', password: 'password123' },
+      { nom: 'Bernard', prenom: 'Pierre', email: 'pierre.bernard@email.com', password: 'password123' }
+    ];
+
+    const createdUsers = await User.bulkCreate(users, { individualHooks: true });
+
+    const pollutions = [
+      { titre: 'Déversement de déchets plastiques', description: 'Grande quantité de déchets plastiques observée sur les berges.', type: 'plastique', localisation: 'Seine, Paris 15ème', latitude: 48.8422, longitude: 2.2882, statut: 'signalee', userId: createdUsers[0].id },
+      { titre: 'Fumées industrielles suspectes', description: 'Émanations de fumées noires provenant de l\'usine locale.', type: 'chimique', localisation: 'Zone industrielle de Gennevilliers', latitude: 48.9333, longitude: 2.2833, statut: 'en_cours', userId: createdUsers[1].id },
+      { titre: 'Dépôt sauvage de gravats', description: 'Dépôt illégal de matériaux de construction.', type: 'dechet', localisation: 'Forêt de Fontainebleau', latitude: 48.4000, longitude: 2.7000, statut: 'signalee', userId: createdUsers[0].id },
+      { titre: 'Nuisances sonores nocturnes', description: 'Bruit excessif provenant d\'un établissement de nuit.', type: 'sonore', localisation: 'Rue de Rivoli, Paris 1er', latitude: 48.8606, longitude: 2.3376, statut: 'resolue', userId: createdUsers[2].id },
+      { titre: 'Pollution lumineuse excessive', description: 'Panneaux publicitaires LED très lumineux.', type: 'visuelle', localisation: 'Avenue des Champs-Élysées', latitude: 48.8698, longitude: 2.3076, statut: 'signalee', userId: createdUsers[1].id }
+    ];
+
+    const createdPollutions = await Pollution.bulkCreate(pollutions);
+
+    res.json({
+      message: 'Base de données initialisée avec succès',
+      users: createdUsers.map(u => ({ email: u.email, password: 'password123' })),
+      pollutions: createdPollutions.length
+    });
+  } catch (error) {
+    console.error('Erreur seed:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Route 404
 app.use((req, res) => {
   res.status(404).json({
