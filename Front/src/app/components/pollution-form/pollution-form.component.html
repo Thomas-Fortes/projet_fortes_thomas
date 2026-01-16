@@ -1,136 +1,195 @@
-<div class="form-container">
-  <h2>{{ isEditMode ? 'Modifier une pollution' : 'Signaler une pollution' }}</h2>
-
-  <form [formGroup]="pollutionForm" (ngSubmit)="onSubmit()">
-    <div class="form-group">
-      <label for="titre">Titre *</label>
-      <input
-        type="text"
-        id="titre"
-        formControlName="titre"
-        placeholder="Ex: Deversement de dechets"
-        [class.error]="hasError('titre', 'required') || hasError('titre', 'minlength')"
-      >
-      <span class="error-message" *ngIf="hasError('titre', 'required')">
-        Le titre est requis
-      </span>
-      <span class="error-message" *ngIf="hasError('titre', 'minlength')">
-        Le titre doit contenir au moins 3 caracteres
-      </span>
-    </div>
-
-    <div class="form-group">
-      <label for="type">Type de pollution *</label>
-      <select
-        id="type"
-        formControlName="type"
-        [class.error]="hasError('type', 'required')"
-      >
-        <option value="">Selectionner un type</option>
-        <option *ngFor="let type of typesPolluton" [value]="type">{{ getTypeLabel(type) }}</option>
-      </select>
-      <span class="error-message" *ngIf="hasError('type', 'required')">
-        Le type est requis
-      </span>
-    </div>
-
-    <div class="form-group">
-      <label for="description">Description *</label>
-      <textarea
-        id="description"
-        formControlName="description"
-        rows="4"
-        placeholder="Decrivez la pollution observee..."
-        [class.error]="hasError('description', 'required') || hasError('description', 'minlength')"
-      ></textarea>
-      <span class="error-message" *ngIf="hasError('description', 'required')">
-        La description est requise
-      </span>
-      <span class="error-message" *ngIf="hasError('description', 'minlength')">
-        La description doit contenir au moins 10 caracteres
-      </span>
-    </div>
-
-    <div class="form-group">
-      <label for="localisation">Localisation *</label>
-      <input
-        type="text"
-        id="localisation"
-        formControlName="localisation"
-        placeholder="Ex: Parc de la Villette, Paris"
-        [class.error]="hasError('localisation', 'required')"
-      >
-      <span class="error-message" *ngIf="hasError('localisation', 'required')">
-        La localisation est requise
-      </span>
-    </div>
-
-    <div class="form-row">
-      <div class="form-group">
-        <label for="latitude">Latitude (optionnel)</label>
-        <input
-          type="number"
-          id="latitude"
-          formControlName="latitude"
-          step="0.000001"
-          placeholder="48.8566"
-        >
+<div class="page-container fade-in">
+  <div class="form-card">
+    <!-- Header -->
+    <div class="form-header">
+      <div class="header-icon">
+        <svg *ngIf="!isEditMode" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+        </svg>
+        <svg *ngIf="isEditMode" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+        </svg>
       </div>
-
-      <div class="form-group">
-        <label for="longitude">Longitude (optionnel)</label>
-        <input
-          type="number"
-          id="longitude"
-          formControlName="longitude"
-          step="0.000001"
-          placeholder="2.3522"
-        >
+      <div>
+        <h1>{{ isEditMode ? 'Modifier le signalement' : 'Nouveau signalement' }}</h1>
+        <p>{{ isEditMode ? 'Mettez a jour les informations de cette pollution' : 'Signalez une pollution observee dans votre environnement' }}</p>
       </div>
     </div>
 
-    <div class="form-group" *ngIf="isEditMode">
-      <label for="statut">Statut</label>
-      <select id="statut" formControlName="statut">
-        <option *ngFor="let statut of statuts" [value]="statut">{{ getStatutLabel(statut) }}</option>
-      </select>
+    <!-- Error Alert -->
+    <div class="alert alert-error" *ngIf="submitError">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+      </svg>
+      <span>{{ submitError }}</span>
     </div>
 
-    <div class="form-group">
-      <label>Photo (optionnel)</label>
-      <div class="photo-upload">
-        <input
-          type="file"
-          id="photo"
-          accept="image/jpeg,image/png,image/gif,image/webp"
-          (change)="onFileSelected($event)"
-          #fileInput
-        >
-        <label for="photo" class="upload-btn">
-          Choisir une image
+    <!-- Form -->
+    <form [formGroup]="pollutionForm" (ngSubmit)="onSubmit()">
+      <!-- Titre -->
+      <div class="form-group">
+        <label class="form-label" for="titre">
+          Titre du signalement
+          <span class="required">*</span>
         </label>
+        <input
+          type="text"
+          id="titre"
+          class="form-input"
+          formControlName="titre"
+          placeholder="Ex: Deversement de dechets plastiques"
+          [class.is-invalid]="hasError('titre', 'required') || hasError('titre', 'minlength')"
+        >
+        <div class="form-error" *ngIf="hasError('titre', 'required')">Le titre est requis</div>
+        <div class="form-error" *ngIf="hasError('titre', 'minlength')">Le titre doit contenir au moins 3 caracteres</div>
+      </div>
 
-        <div *ngIf="currentPhotoUrl" class="photo-preview">
-          <img [src]="currentPhotoUrl" alt="Preview" />
-          <button type="button" class="btn-remove" (click)="removePhoto(); fileInput.value=''">
-            Supprimer
-          </button>
+      <!-- Type -->
+      <div class="form-group">
+        <label class="form-label" for="type">
+          Type de pollution
+          <span class="required">*</span>
+        </label>
+        <select
+          id="type"
+          class="form-select"
+          formControlName="type"
+          [class.is-invalid]="hasError('type', 'required')"
+        >
+          <option value="">Selectionner un type</option>
+          <option *ngFor="let type of typesPolluton" [value]="type">{{ getTypeLabel(type) }}</option>
+        </select>
+        <div class="form-error" *ngIf="hasError('type', 'required')">Le type est requis</div>
+      </div>
+
+      <!-- Description -->
+      <div class="form-group">
+        <label class="form-label" for="description">
+          Description
+          <span class="required">*</span>
+        </label>
+        <textarea
+          id="description"
+          class="form-textarea"
+          formControlName="description"
+          rows="4"
+          placeholder="Decrivez la pollution observee en detail..."
+          [class.is-invalid]="hasError('description', 'required') || hasError('description', 'minlength')"
+        ></textarea>
+        <div class="form-error" *ngIf="hasError('description', 'required')">La description est requise</div>
+        <div class="form-error" *ngIf="hasError('description', 'minlength')">La description doit contenir au moins 10 caracteres</div>
+      </div>
+
+      <!-- Localisation -->
+      <div class="form-group">
+        <label class="form-label" for="localisation">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="label-icon">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+          </svg>
+          Localisation
+          <span class="required">*</span>
+        </label>
+        <input
+          type="text"
+          id="localisation"
+          class="form-input"
+          formControlName="localisation"
+          placeholder="Ex: Parc de la Villette, Paris 19e"
+          [class.is-invalid]="hasError('localisation', 'required')"
+        >
+        <div class="form-error" *ngIf="hasError('localisation', 'required')">La localisation est requise</div>
+      </div>
+
+      <!-- Coordonnees GPS -->
+      <div class="form-section">
+        <div class="section-header">
+          <h3>Coordonnees GPS</h3>
+          <span class="optional-badge">Optionnel</span>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="latitude">Latitude</label>
+            <input
+              type="number"
+              id="latitude"
+              class="form-input"
+              formControlName="latitude"
+              step="0.000001"
+              placeholder="48.8566"
+            >
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="longitude">Longitude</label>
+            <input
+              type="number"
+              id="longitude"
+              class="form-input"
+              formControlName="longitude"
+              step="0.000001"
+              placeholder="2.3522"
+            >
+          </div>
         </div>
       </div>
-      <small class="hint">Formats acceptes: jpeg, png, gif, webp. Taille max: 5MB</small>
-    </div>
 
-    <div class="error-message submit-error" *ngIf="submitError">
-      {{ submitError }}
-    </div>
+      <!-- Statut (edit mode only) -->
+      <div class="form-group" *ngIf="isEditMode">
+        <label class="form-label" for="statut">Statut</label>
+        <select id="statut" class="form-select" formControlName="statut">
+          <option *ngFor="let statut of statuts" [value]="statut">{{ getStatutLabel(statut) }}</option>
+        </select>
+      </div>
 
-    <div class="form-actions">
-      <button type="button" class="btn btn-secondary" (click)="cancel()" [disabled]="loading">
-        Annuler
-      </button>
-      <button type="submit" class="btn btn-primary" [disabled]="loading">
-        {{ loading ? 'En cours...' : (isEditMode ? 'Mettre a jour' : 'Signaler') }}
-      </button>
-    </div>
-  </form>
+      <!-- Photo -->
+      <div class="form-section">
+        <div class="section-header">
+          <h3>Photo</h3>
+          <span class="optional-badge">Optionnel</span>
+        </div>
+        <div class="photo-upload-area" [class.has-photo]="currentPhotoUrl">
+          <input
+            type="file"
+            id="photo"
+            accept="image/jpeg,image/png,image/gif,image/webp"
+            (change)="onFileSelected($event)"
+            #fileInput
+          >
+
+          <div *ngIf="!currentPhotoUrl" class="upload-placeholder" (click)="fileInput.click()">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+            </svg>
+            <span>Cliquez pour ajouter une photo</span>
+            <small>JPEG, PNG, GIF, WebP - Max 5MB</small>
+          </div>
+
+          <div *ngIf="currentPhotoUrl" class="photo-preview">
+            <img [src]="currentPhotoUrl" alt="Preview" />
+            <div class="photo-actions">
+              <button type="button" class="btn btn-sm btn-secondary" (click)="fileInput.click()">
+                Changer
+              </button>
+              <button type="button" class="btn btn-sm btn-danger" (click)="removePhoto(); fileInput.value=''">
+                Supprimer
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" (click)="cancel()" [disabled]="loading">
+          Annuler
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="loading || pollutionForm.invalid">
+          <span *ngIf="!loading">{{ isEditMode ? 'Enregistrer' : 'Signaler la pollution' }}</span>
+          <span *ngIf="loading" class="btn-loading">
+            <span class="spinner"></span>
+            {{ isEditMode ? 'Mise a jour...' : 'Envoi...' }}
+          </span>
+        </button>
+      </div>
+    </form>
+  </div>
 </div>
