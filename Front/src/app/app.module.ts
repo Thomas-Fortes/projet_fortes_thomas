@@ -60,7 +60,7 @@ const routes: Routes = [
     RouterModule.forRoot(routes),
     NgxsModule.forRoot([FavoritesState, AuthState]),
     NgxsStoragePluginModule.forRoot({
-      keys: ['favorites', 'auth'],
+      key: ['favorites', 'auth'],
       storage: StorageOption.SessionStorage
     })
   ],
