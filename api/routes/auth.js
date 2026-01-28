@@ -13,6 +13,9 @@ router.post('/login', authController.login);
 // POST /api/auth/refresh - Rafraîchir le token
 router.post('/refresh', authController.refreshToken);
 
+// POST /api/auth/logout - Déconnexion (efface les cookies)
+router.post('/logout', authController.logout);
+
 // Routes protégées
 // GET /api/auth/profile - Obtenir son profil
 router.get('/profile', authenticateJWT, authController.getProfile);

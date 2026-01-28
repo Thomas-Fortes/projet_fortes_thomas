@@ -1,6 +1,19 @@
 const User = require('../models/User');
 const { generateAccessToken, generateRefreshToken, verifyRefreshToken } = require('../middleware/auth');
 
+// Configuration des cookies
+const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production', // HTTPS uniquement en production
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // 'none' pour cross-origin en prod
+  maxAge: 24 * 60 * 60 * 1000 // 24 heures
+};
+
+const refreshCookieOptions = {
+  ...cookieOptions,
+  maxAge: 7 * 24 * 60 * 60 * 1000 // 7 jours
+};
+
 // Inscription d'un nouvel utilisateur
 exports.signup = async (req, res) => {
   try {
@@ -33,11 +46,13 @@ exports.signup = async (req, res) => {
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 
+    // Envoyer les tokens dans des cookies HttpOnly
+    res.cookie('accessToken', accessToken, cookieOptions);
+    res.cookie('refreshToken', refreshToken, refreshCookieOptions);
+
     res.status(201).json({
       message: 'Inscription réussie',
-      user: user.toSafeObject(),
-      accessToken,
-      refreshToken
+      user: user.toSafeObject()
     });
   } catch (error) {
     console.error('Erreur lors de l\'inscription:', error);
@@ -90,11 +105,13 @@ exports.login = async (req, res) => {
     const accessToken = generateAccessToken(user);
     const refreshToken = generateRefreshToken(user);
 
+    // Envoyer les tokens dans des cookies HttpOnly
+    res.cookie('accessToken', accessToken, cookieOptions);
+    res.cookie('refreshToken', refreshToken, refreshCookieOptions);
+
     res.status(200).json({
       message: 'Connexion réussie',
-      user: user.toSafeObject(),
-      accessToken,
-      refreshToken
+      user: user.toSafeObject()
     });
   } catch (error) {
     console.error('Erreur lors de la connexion:', error);
@@ -107,7 +124,8 @@ exports.login = async (req, res) => {
 // Rafraîchir le token
 exports.refreshToken = async (req, res) => {
   try {
-    const { refreshToken } = req.body;
+    // Lire le refresh token depuis le cookie ou le body (rétrocompatibilité)
+    const refreshToken = req.cookies.refreshToken || req.body.refreshToken;
 
     if (!refreshToken) {
       return res.status(400).json({
@@ -120,6 +138,9 @@ exports.refreshToken = async (req, res) => {
     try {
       decoded = verifyRefreshToken(refreshToken);
     } catch (error) {
+      // Effacer les cookies si le token est invalide
+      res.clearCookie('accessToken', cookieOptions);
+      res.clearCookie('refreshToken', refreshCookieOptions);
       return res.status(401).json({
         error: 'Refresh token invalide ou expiré'
       });
@@ -134,13 +155,17 @@ exports.refreshToken = async (req, res) => {
       });
     }
 
-    // Générer un nouveau access token
+    // Générer de nouveaux tokens
     const newAccessToken = generateAccessToken(user);
     const newRefreshToken = generateRefreshToken(user);
 
+    // Envoyer les nouveaux tokens dans des cookies HttpOnly
+    res.cookie('accessToken', newAccessToken, cookieOptions);
+    res.cookie('refreshToken', newRefreshToken, refreshCookieOptions);
+
     res.status(200).json({
-      accessToken: newAccessToken,
-      refreshToken: newRefreshToken
+      message: 'Tokens rafraîchis',
+      user: user.toSafeObject()
     });
   } catch (error) {
     console.error('Erreur lors du rafraîchissement du token:', error);
@@ -148,6 +173,15 @@ exports.refreshToken = async (req, res) => {
       error: 'Erreur serveur lors du rafraîchissement du token'
     });
   }
+};
+
+// Déconnexion (efface les cookies)
+exports.logout = async (req, res) => {
+  res.clearCookie('accessToken', cookieOptions);
+  res.clearCookie('refreshToken', refreshCookieOptions);
+  res.status(200).json({
+    message: 'Déconnexion réussie'
+  });
 };
 
 // Obtenir le profil de l'utilisateur connecté

@@ -12,14 +12,8 @@ export interface SignupRequest {
   password: string;
 }
 
+// Les tokens sont maintenant dans des cookies HttpOnly (pas dans la réponse JSON)
 export interface AuthResponse {
   message: string;
   user: User;
-  accessToken: string;
-  refreshToken: string;
-}
-
-export interface RefreshResponse {
-  accessToken: string;
-  refreshToken: string;
 }

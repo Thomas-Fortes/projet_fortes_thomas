@@ -3,25 +3,27 @@ require('dotenv').config();
 
 const JWT_SECRET = process.env.JWT_SECRET || 'default_secret_change_me';
 
-// Middleware pour vérifier le token JWT
+// Middleware pour vérifier le token JWT (Cookie HttpOnly ou Header Authorization)
 const authenticateJWT = (req, res, next) => {
-  const authHeader = req.headers.authorization;
+  // Priorité 1: Cookie HttpOnly (plus sécurisé)
+  // Priorité 2: Header Authorization (rétrocompatibilité)
+  let token = req.cookies?.accessToken;
 
-  if (!authHeader) {
+  if (!token) {
+    const authHeader = req.headers.authorization;
+    if (authHeader) {
+      const parts = authHeader.split(' ');
+      if (parts.length === 2 && parts[0] === 'Bearer') {
+        token = parts[1];
+      }
+    }
+  }
+
+  if (!token) {
     return res.status(401).json({
       error: 'Token d\'authentification manquant'
     });
   }
-
-  const parts = authHeader.split(' ');
-
-  if (parts.length !== 2 || parts[0] !== 'Bearer') {
-    return res.status(401).json({
-      error: 'Format de token invalide. Utilisez: Bearer <token>'
-    });
-  }
-
-  const token = parts[1];
 
   jwt.verify(token, JWT_SECRET, (err, decoded) => {
     if (err) {
@@ -44,19 +46,23 @@ const authenticateJWT = (req, res, next) => {
 
 // Middleware optionnel - ne bloque pas si pas de token
 const optionalAuth = (req, res, next) => {
-  const authHeader = req.headers.authorization;
+  // Priorité 1: Cookie HttpOnly
+  // Priorité 2: Header Authorization
+  let token = req.cookies?.accessToken;
 
-  if (!authHeader) {
-    return next();
+  if (!token) {
+    const authHeader = req.headers.authorization;
+    if (authHeader) {
+      const parts = authHeader.split(' ');
+      if (parts.length === 2 && parts[0] === 'Bearer') {
+        token = parts[1];
+      }
+    }
   }
 
-  const parts = authHeader.split(' ');
-
-  if (parts.length !== 2 || parts[0] !== 'Bearer') {
+  if (!token) {
     return next();
   }
-
-  const token = parts[1];
 
   jwt.verify(token, JWT_SECRET, (err, decoded) => {
     if (!err) {

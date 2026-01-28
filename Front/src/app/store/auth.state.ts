@@ -5,16 +5,11 @@ import { User } from '../models/user.model';
 // Actions
 export class Login {
   static readonly type = '[Auth] Login';
-  constructor(public payload: { user: User; accessToken: string; refreshToken: string }) {}
+  constructor(public payload: { user: User }) {}
 }
 
 export class Logout {
   static readonly type = '[Auth] Logout';
-}
-
-export class RefreshTokens {
-  static readonly type = '[Auth] Refresh Tokens';
-  constructor(public payload: { accessToken: string; refreshToken: string }) {}
 }
 
 export class UpdateUser {
@@ -22,11 +17,9 @@ export class UpdateUser {
   constructor(public user: User) {}
 }
 
-// State Model
+// State Model - Plus de tokens stockés (ils sont dans les cookies HttpOnly)
 export interface AuthStateModel {
   user: User | null;
-  accessToken: string | null;
-  refreshToken: string | null;
   isAuthenticated: boolean;
 }
 
@@ -34,8 +27,6 @@ export interface AuthStateModel {
   name: 'auth',
   defaults: {
     user: null,
-    accessToken: null,
-    refreshToken: null,
     isAuthenticated: false
   }
 })
@@ -45,16 +36,6 @@ export class AuthState {
   @Selector()
   static getUser(state: AuthStateModel): User | null {
     return state.user;
-  }
-
-  @Selector()
-  static getAccessToken(state: AuthStateModel): string | null {
-    return state.accessToken;
-  }
-
-  @Selector()
-  static getRefreshToken(state: AuthStateModel): string | null {
-    return state.refreshToken;
   }
 
   @Selector()
@@ -71,8 +52,6 @@ export class AuthState {
   login(ctx: StateContext<AuthStateModel>, action: Login) {
     ctx.patchState({
       user: action.payload.user,
-      accessToken: action.payload.accessToken,
-      refreshToken: action.payload.refreshToken,
       isAuthenticated: true
     });
   }
@@ -81,17 +60,7 @@ export class AuthState {
   logout(ctx: StateContext<AuthStateModel>) {
     ctx.patchState({
       user: null,
-      accessToken: null,
-      refreshToken: null,
       isAuthenticated: false
-    });
-  }
-
-  @Action(RefreshTokens)
-  refreshTokens(ctx: StateContext<AuthStateModel>, action: RefreshTokens) {
-    ctx.patchState({
-      accessToken: action.payload.accessToken,
-      refreshToken: action.payload.refreshToken
     });
   }
 
