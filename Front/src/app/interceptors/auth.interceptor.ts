@@ -9,14 +9,15 @@ import {
 import { Observable, throwError, BehaviorSubject } from 'rxjs';
 import { catchError, filter, take, switchMap } from 'rxjs/operators';
 import { Store } from '@ngxs/store';
-import { AuthState, Logout } from '../store/auth.state';
+import { Logout } from '../store/auth.state';
 import { AuthService } from '../services/auth.service';
 import { Router } from '@angular/router';
+import { environment } from '../../environments/environment';
 
 @Injectable()
 export class AuthInterceptor implements HttpInterceptor {
   private isRefreshing = false;
-  private refreshTokenSubject: BehaviorSubject<string | null> = new BehaviorSubject<string | null>(null);
+  private refreshTokenSubject: BehaviorSubject<boolean> = new BehaviorSubject<boolean>(false);
 
   constructor(
     private store: Store,
@@ -25,12 +26,12 @@ export class AuthInterceptor implements HttpInterceptor {
   ) {}
 
   intercept(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    // Récupérer le token depuis le store
-    const token = this.store.selectSnapshot(AuthState.getAccessToken);
-
-    // Si on a un token, l'ajouter à la requête
-    if (token) {
-      request = this.addToken(request, token);
+    // Ajouter withCredentials pour envoyer les cookies HttpOnly automatiquement
+    // Uniquement pour les requêtes vers notre API
+    if (request.url.startsWith(environment.apiUrl)) {
+      request = request.clone({
+        withCredentials: true
+      });
     }
 
     return next.handle(request).pipe(
@@ -50,42 +51,32 @@ export class AuthInterceptor implements HttpInterceptor {
     );
   }
 
-  private addToken(request: HttpRequest<any>, token: string): HttpRequest<any> {
-    return request.clone({
-      setHeaders: {
-        Authorization: `Bearer ${token}`
-      }
-    });
-  }
-
   private handle401Error(request: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     if (!this.isRefreshing) {
       this.isRefreshing = true;
-      this.refreshTokenSubject.next(null);
+      this.refreshTokenSubject.next(false);
 
-      const refreshToken = this.store.selectSnapshot(AuthState.getRefreshToken);
-
-      if (refreshToken) {
-        return this.authService.refreshToken(refreshToken).pipe(
-          switchMap((response) => {
-            this.isRefreshing = false;
-            this.refreshTokenSubject.next(response.accessToken);
-            return next.handle(this.addToken(request, response.accessToken));
-          }),
-          catchError((err) => {
-            this.isRefreshing = false;
-            this.store.dispatch(new Logout());
-            this.router.navigate(['/login']);
-            return throwError(() => err);
-          })
-        );
-      }
+      // Le serveur lit le refreshToken depuis le cookie
+      return this.authService.refreshToken().pipe(
+        switchMap(() => {
+          this.isRefreshing = false;
+          this.refreshTokenSubject.next(true);
+          // Rejouer la requête originale (le nouveau token est dans le cookie)
+          return next.handle(request.clone({ withCredentials: true }));
+        }),
+        catchError((err) => {
+          this.isRefreshing = false;
+          this.store.dispatch(new Logout());
+          this.router.navigate(['/login']);
+          return throwError(() => err);
+        })
+      );
     }
 
     return this.refreshTokenSubject.pipe(
-      filter(token => token !== null),
+      filter(refreshed => refreshed === true),
       take(1),
-      switchMap((token) => next.handle(this.addToken(request, token!)))
+      switchMap(() => next.handle(request.clone({ withCredentials: true })))
     );
   }
 }
